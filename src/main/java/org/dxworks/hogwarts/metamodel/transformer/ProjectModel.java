@@ -2,7 +2,6 @@ package org.dxworks.hogwarts.metamodel.transformer;
 
 import lombok.extern.slf4j.Slf4j;
 import org.dxworks.hogwarts.metamodel.*;
-import org.dxworks.hogwarts.metamodel.registries.ComponentSchemaRegistry;
 import org.dxworks.hogwarts.metamodel.registries.FileRegistry;
 import org.dxworks.hogwarts.metamodel.registries.RelationRegistry;
 import org.dxworks.hogwarts.parser.model.Config;
@@ -15,7 +14,6 @@ public class ProjectModel {
 
     private FileRegistry fileRegistry = new FileRegistry();
     private RelationRegistry relationRegistry = new RelationRegistry();
-    private ComponentSchemaRegistry componentSchemaRegistry = new ComponentSchemaRegistry();
 
     public ProjectModel(List<Config> config) {
         for (Config c : config) {

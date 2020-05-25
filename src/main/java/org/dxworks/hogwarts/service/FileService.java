@@ -1,11 +1,14 @@
 package org.dxworks.hogwarts.service;
 
 import org.dxworks.hogwarts.metamodel.FileEntity;
+import org.dxworks.hogwarts.metamodel.Relation;
 import org.dxworks.hogwarts.metamodel.transformer.ComponentModel;
 import org.dxworks.hogwarts.metamodel.transformer.ProjectModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.management.relation.RelationService;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 

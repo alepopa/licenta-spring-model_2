@@ -1,12 +1,8 @@
 package org.dxworks.hogwarts.controllers;
 
 import com.google.gson.Gson;
-import org.dxworks.hogwarts.dto.ComponentDTO;
-import org.dxworks.hogwarts.dto.ComponentViewDTO;
-import org.dxworks.hogwarts.dto.ViewDTO;
+import org.dxworks.hogwarts.dto.*;
 import org.dxworks.hogwarts.metamodel.Component;
-import org.dxworks.hogwarts.metamodel.ComponentSchema;
-import org.dxworks.hogwarts.metamodel.registries.ComponentSchemaRegistry;
 import org.dxworks.hogwarts.metamodel.transformer.ComponentModel;
 import org.dxworks.hogwarts.metamodel.transformer.ProjectModel;
 import org.dxworks.hogwarts.parser.model.ComponentConfig;
@@ -20,6 +16,7 @@ import org.apache.commons.io.IOUtils;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
@@ -39,7 +36,7 @@ public class UploadController {
     @Autowired
     private ComponentsRelationsService componentsRelationsService;
     @Autowired
-    private ComponentSchemaRegistry componentSchemaRegistry;
+    private FileService fileService;
 
 
     @PostMapping("/upload")
@@ -87,20 +84,52 @@ public class UploadController {
         }
     }
 
-    @PostMapping("relation")
-    public void createRelationProject(@RequestBody ComponentViewDTO body) {
-        System.out.println(body);
+    @PostMapping("/relation")
+    public void createRelationProject(@RequestParam("projectId") String projectId, @RequestParam("qMName") String qMName, @RequestParam("qualityIndicators") String[] qualityIndicators, @RequestParam("qIAxis") String[] qIAxis) throws IOException {
+        System.out.println("ProjectId " + projectId);
+        System.out.println("Quality Model Name " + qMName);
+        System.out.println("Quality indicators ");
+        for (int i = 0; i < qualityIndicators.length; i++){
+            System.out.println(qualityIndicators[i]);
+        }
+        System.out.println("Added axises ");
+        for (int i = 0; i < qIAxis.length; i++){
+            System.out.println(qIAxis[i]);
+        }
     }
+
+//    @PostMapping("/relation")
+//    public void createRelationProject(@RequestBody ProbaDTO body){
+//        System.out.println(body.getProjectId());
+//        System.out.println(body.getQMName());
+//        System.out.println(Arrays.toString(body.getQualityIndicators()));
+//        System.out.println(Arrays.toString(body.getQIAxis()));
+//    }
+
 
     @PostMapping("relationComponent")
     public void createRelationComponent(@RequestBody ComponentDTO body) {
         System.out.println(body);
     }
 
+    @GetMapping("ViewDinamic")
+    public List<DinamicViewDTO> getDinamicView(@RequestParam("projectId") String projectId) {
+
+        List<String> filesFromProject = fileService.getAllFileNamesForProject(projectId);
+        List<DinamicViewDTO> dinamicViewDTOList = new ArrayList<>();
+
+        for (String f : filesFromProject) {
+            dinamicViewDTOList.add(compService.getIndicatorsView(projectId, f));
+            System.out.println(f);
+        }
+
+        return dinamicViewDTOList;
+    }
+
     @GetMapping("View1")
     public List<ViewDTO> getFirstView(@RequestParam("projectId") String projectId, @RequestParam("name") String name) {
 
-        // componentsRelationsService.newCreatedComponent(projectId, name);
+        componentsRelationsService.getExtraFilesNotContainedByComponents(projectId, name);
         List<String> componentNames = compService.getAllComponentNamesForComponentSchema(name);
         List<ViewDTO> viewDTOList = new ArrayList<>();
 
@@ -114,6 +143,8 @@ public class UploadController {
 
     @GetMapping("View2")
     public List<ViewDTO> getSecondView(@RequestParam("projectId") String projectId, @RequestParam("componentSchema") String name, @RequestParam("qualityAspect") String qa) {
+
+        componentsRelationsService.getExtraFilesNotContainedByComponents(projectId, name);
         List<String> componentNames = compService.getAllComponentNamesForComponentSchema(name);
         List<ViewDTO> viewDTOList = new ArrayList<>();
 
@@ -138,9 +169,8 @@ public class UploadController {
 //    }
 
 //    @GetMapping("Test2")
-//    public Double getValuePerQualityIndicator(@RequestParam("p") String projectId, @RequestParam("c") String component, @RequestParam("qa") String qa, @RequestParam("qi") String qualityIndicator, @RequestParam("cs") String comp) {
-//
-//        return compService.getValuePerQualityIndicator(projectId, component, qa, qualityIndicator, comp);
+//    public Component getValuePerQualityIndicator(@RequestParam("p") String projectId, @RequestParam("cs") String compSchema){
+//        return componentsRelationsService.getExtraFilesNotContainedByComponents(projectId, compSchema);
 //    }
 }
 

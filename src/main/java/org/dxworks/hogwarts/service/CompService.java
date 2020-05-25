@@ -1,9 +1,10 @@
 package org.dxworks.hogwarts.service;
 
+import org.dxworks.hogwarts.dto.DinamicViewDTO;
 import org.dxworks.hogwarts.dto.TableViewDTO;
 import org.dxworks.hogwarts.dto.ViewDTO;
-import org.dxworks.hogwarts.metamodel.ComponentSchema;
-import org.dxworks.hogwarts.metamodel.registries.ComponentSchemaRegistry;
+import org.dxworks.hogwarts.metamodel.Component;
+import org.dxworks.hogwarts.metamodel.registries.ComponentRegistry;
 import org.dxworks.hogwarts.metamodel.transformer.ComponentModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,17 +27,59 @@ public class CompService {
     public List<String> getAllComponentNamesForComponentSchema(String componentSchemaName) {
 
         ComponentModel componentModel = componentManager.getComponentModel(componentSchemaName);
-        ComponentSchemaRegistry componentSchemaRegistry = componentModel.getComponentSchemaRegistry();
+        ComponentRegistry componentRegistry = componentModel.getComponentRegistry();
 
-        return componentSchemaRegistry.getAllComponentEntities().stream()
-                .map(ComponentSchema::getName)
+        return componentRegistry.getAllComponents().stream()
+                .map(Component::getName)
                 .collect(Collectors.toList());
+    }
+
+    public DinamicViewDTO getIndicatorsView(String projectId, String file){
+
+        List<String> qualityAspects = new ArrayList<>();
+        List<String> qualityIndicators = new ArrayList<>();
+        List<Double> qualityValues = new ArrayList<>();
+        Map<String, Double> qAValueMap = new HashMap<>();
+        List<TableViewDTO> tableViewDTOS = new ArrayList<>();
+
+        qualityAspects.addAll(relationsService.getRelationTypesForEntity(file, projectId));
+
+        for (String et : relationsService.getRelationTypesForEntity(file, projectId)) {
+            if (qualityAspects.contains(et)) {
+                qualityIndicators.addAll(relationsService.getRelationsProperty(file, et, projectId));
+                qualityValues.addAll(relationsService.getRelationsValue(file, et, projectId));
+            }
+        }
+
+        double sumOfQualityIndicatorsValues = 0;
+        for (double qV : qualityValues) {
+            sumOfQualityIndicatorsValues += qV;
+        }
+
+        List<String> distinctQualityIndicators = qualityIndicators.stream().distinct().collect(Collectors.toList());
+        List<String> distinctQualityAspects = qualityAspects.stream().distinct().collect(Collectors.toList());
+
+        tableViewDTOS.add(new TableViewDTO("Total severity score", sumOfQualityIndicatorsValues));
+        tableViewDTOS.add(new TableViewDTO("Count anomalies", (double) qualityIndicators.size()));
+        tableViewDTOS.add(new TableViewDTO("Anomaly types", (double) distinctQualityIndicators.size()));
+        tableViewDTOS.add(new TableViewDTO("Quality Aspects", (double) distinctQualityAspects.size()));
+
+        for(String qa: qualityAspects)
+        {
+            qAValueMap.put(qa, getValuePerQualityAspectDinamicView(projectId, file, qa));
+        }
+
+        for (Map.Entry<String, Double> e : qAValueMap.entrySet()) {
+            System.out.println(e.getKey() + e.getValue());
+            tableViewDTOS.add(new TableViewDTO(e.getKey(), e.getValue()));
+        }
+        return DinamicViewDTO.builder().fileName(file).fileViewDTOS(tableViewDTOS).build();
     }
 
     public ViewDTO getQAFromFile(String projectId, String component, String componentSchemaName) {
         List<String> filesFromProject = fileService.getAllFileNamesForProject(projectId);
         System.out.println(filesFromProject);
-        List<String> filesFromComponent = componentsRelationsService.getRelationTypesForComponent(component, componentSchemaName);
+        List<String> filesFromComponent = componentsRelationsService.getAllFilesForSpecificComponent(component, componentSchemaName);
         System.out.println(filesFromComponent);
         List<String> qualityAspect = new ArrayList<>();
         List<String> qualityIndicators = new ArrayList<>();
@@ -112,7 +155,7 @@ public class CompService {
     public ViewDTO getQIForEachQA(String projectId, String component, String oneQualityAspect, String componentSchemaName) {
         List<String> filesFromProject = fileService.getAllFileNamesForProject(projectId);
         System.out.println(filesFromProject);
-        List<String> filesFromComponent = componentsRelationsService.getRelationTypesForComponent(component, componentSchemaName);
+        List<String> filesFromComponent = componentsRelationsService.getAllFilesForSpecificComponent(component, componentSchemaName);
         System.out.println(filesFromComponent);
         System.out.println(filesFromComponent.size());
 
@@ -161,7 +204,7 @@ public class CompService {
     }
 
     public double getValuePerQualityAspect(String projectId, String component, String qA, String componentSchemaName) {
-        List<String> filesFromComponent = componentsRelationsService.getRelationTypesForComponent(component, componentSchemaName);
+        List<String> filesFromComponent = componentsRelationsService.getAllFilesForSpecificComponent(component, componentSchemaName);
         List<Double> valuesForQa = new ArrayList<>();
         Map<String, List<Double>> qAValue = new HashMap<>();
 
@@ -176,8 +219,24 @@ public class CompService {
         return sum;
     }
 
+    public double getValuePerQualityAspectDinamicView(String projectId, String file, String qA) {
+        // List<String> filesFromComponent = componentsRelationsService.getAllFilesForSpecificComponent(component, componentSchemaName);
+        List<Double> valuesForQa = new ArrayList<>();
+        Map<String, List<Double>> qAValue = new HashMap<>();
+
+       // for (String f : filesFromComponent) {
+            valuesForQa.addAll(relationsService.getValuesForQA(file, projectId, qA));
+            qAValue.put(qA, valuesForQa);
+       // }
+        double sum = 0;
+        for (Double x : valuesForQa) {
+            sum += x;
+        }
+        return sum;
+    }
+
     public double getValuePerQualityIndicator(String projectId, String component, String qa, String qi, String componentSchemaName) {
-        List<String> filesFromComponent = componentsRelationsService.getRelationTypesForComponent(component, componentSchemaName);
+        List<String> filesFromComponent = componentsRelationsService.getAllFilesForSpecificComponent(component, componentSchemaName);
         List<Double> valuesForQi = new ArrayList<>();
         Map<String, List<Double>> qAValue = new HashMap<>();
 

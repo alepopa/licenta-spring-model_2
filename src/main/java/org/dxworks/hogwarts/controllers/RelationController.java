@@ -27,6 +27,11 @@ public class RelationController {
         return relationsService.getRelationsProperty(entityTypeString, relationType, projectId);
     }
 
+    @GetMapping("allIndicators")
+    public List<String> getQualityIndicatorsForProject(@RequestParam("projectId") String projectId) {
+        return relationsService.getAllQualityIndicatorsForProject(projectId);
+    }
+
 //    @GetMapping("value")
 //    public List<Double> getQualityIndicatorsValue(@RequestParam("EntityType") String entityTypeString, @RequestParam("AspectId") String relationType, @RequestParam("projectId") String projectId) {
 //        return relationsService.getRelationsValue(entityTypeString, relationType, projectId);

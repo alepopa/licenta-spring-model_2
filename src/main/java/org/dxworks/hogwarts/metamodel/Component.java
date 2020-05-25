@@ -1,31 +1,37 @@
 package org.dxworks.hogwarts.metamodel;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class Component {
 
-    private List<Component> components = new ArrayList<>();
-    private ComponentSchema componentSchema;
+    private String name;
     private ArrayList<String> filesList;
 
-    public Component(ComponentSchema componentSchema, ArrayList<String> filesList) {
-        this.componentSchema = componentSchema;
-        this.filesList = filesList;
+    public Component(String name) {
+        this.name = name;
+
     }
 
+    public String getName() {
+        return name;
+    }
+    public void setName( String name ) {
+        this.name = name;
+    }
+    public void setFilesList( ArrayList<String> filesList ) {
+        this.filesList = filesList;
+    }
     public ArrayList<String> getFilesList() {
         return filesList;
     }
-
-    public void addRelation(Component relation) {
-        components.add(relation);
+    public void addFile(String filename) {
+        filesList.add(filename);
     }
 
     @Override
     public String toString() {
         return "Component{" +
-                "componentSchema=" + componentSchema +
+                "name='" + name + '\'' +
                 ", filesList=" + filesList +
                 '}';
     }

@@ -18,6 +18,8 @@ public class RelationsService {
 
     @Autowired
     private ProjectManager projectManager;
+    @Autowired
+    private FileService fileService;
 
     public List<String> getRelationTypesForEntity(String entityTypeString, String projectId) {
         ProjectModel projectModel = projectManager.getProjectModel(projectId);
@@ -78,5 +80,15 @@ public class RelationsService {
                 aux.add(rel.getValue());
         }
         return aux;
+    }
+
+    public List<String> getAllQualityIndicatorsForProject(String projectId){
+
+        List<String> qIList = new ArrayList<>();
+        for(String file: fileService.getAllFileNamesForProject(projectId)){
+            for(String qa: getRelationTypesForEntity(file, projectId))
+                    qIList.addAll(getRelationsProperty(file, qa, projectId));
+        }
+        return qIList;
     }
 }
